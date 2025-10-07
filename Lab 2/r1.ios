@@ -1,0 +1,38 @@
+hostname R1
+
+no ip domain-lookup
+
+int g0/0/0
+ip add 10.1.1.1 255.255.255.252
+
+int g0/0/1
+ip add 192.168.1.1 255.255.255.0
+
+router ospf 1
+    network 192.168.1.0 0.0.0.255 area 0
+    network 10.1.1.0 0.0.0.3 area 0
+    passive-interface g0/0/1
+    exit
+
+key chain NetAcad
+    key 1
+    key-string NetSeckeystring
+    cryptographic-algorithm hmac-sha-256
+    exit
+
+interface g0/0/0
+    ip ospf authentication key-chain NetAcad
+    exit
+
+ip access-list standard PERMIT-SNMP
+    permit 192.168.1.0 0.0.0.255
+    exit
+
+snmp-server view SNMP-RO iso included
+snmp-server group SNMP-G1 v3 priv read SNMP-RO access PERMIT-SNMP
+snmp-server user SNMP-Admin SNMP-G1 v3 auth sha Authpass priv aes 128 Encrypass
+
+ntp authentication-key 1 md5 NTPpassword
+ntp trusted-key 1
+ntp authenticate
+ntp server 10.1.1.2

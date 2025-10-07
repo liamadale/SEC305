@@ -31,7 +31,7 @@ username user01 algorithm-type scrypt secret user01pass
 
 ip domain-name netsec.com
 
-username admin privilege 15 algorithm-type scrypt secret
+username admin privilege 15 algorithm-type scrypt secret cisco12345
 
 crypto key zeroize rsa
 
