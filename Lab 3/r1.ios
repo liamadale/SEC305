@@ -1,0 +1,113 @@
+hostname R1
+
+no ip domain-lookup
+
+! ---------------------------------------------------------
+! IPv4 and IPv6 addressing and routing
+! ---------------------------------------------------------
+
+ipv6 unicast-routing
+
+int g0/0/0
+    ip add 10.1.1.1 255.255.255.252
+    ipv6 address 2001:DB8:ACAD:1::1/64
+    no shut
+
+int g0/0/1
+    ip add 192.168.1.1 255.255.255.0
+    ipv6 address 2001:DB8:ACAD:A::1/64
+    no shut
+
+router ospf 1
+    network 192.168.1.0 0.0.0.255 area 0
+    network 10.1.1.0 0.0.0.3 area 0
+    passive-interface g0/0/1
+    exit
+
+! ---------------------------------------------------------
+! Static routes for IPv6
+! ---------------------------------------------------------
+
+ipv6 route 2001:DB8:ACAD:2::/64 2001:DB8:ACAD:1::2
+ipv6 route 2001:DB8:ACAD:C::/64 2001:DB8:ACAD:1::2
+
+! ---------------------------------------------------------
+! VERIFY CONFIGURATION:
+! show ip ospf neighbor
+! show ip route
+! show ipv6 route
+! ---------------------------------------------------------
+
+! ---------------------------------------------------------
+! ACL to restrict traffic from LAN to only the local LAN
+! ---------------------------------------------------------
+
+ip access-list standard PERMIT-LAN
+    remark Permit only traffic from local LAN
+    permit 192.168.1.0 0.0.0.255
+    deny any
+    exit
+
+interface g0/0/0
+    ip access-group PERMIT-LAN out
+    exit
+
+! ---------------------------------------------------------
+! VERIFY CONFIGURATION:
+! show ip access-lists
+! show ip interface g0/0/0
+! ---------------------------------------------------------
+
+! ---------------------------------------------------------
+! SSH Configuration
+! ---------------------------------------------------------
+
+ip domain-name ccnasecurity.com
+
+crypto key generate rsa general-keys modulus 2048
+
+username admin privilege 15 secret Cisco12345
+
+ip ssh version 2
+
+line vty 0 4
+    transport input ssh
+    login local
+    exit
+
+! ---------------------------------------------------------
+! Configure ACL to restrict SSH access
+! ---------------------------------------------------------
+
+ip access-list standard SSH-ACCESS
+    remark Permit SSH from local LAN only
+    permit 192.168.1.0 0.0.0.255
+    deny any log
+    exit
+
+line vty 0 4
+    access-class SSH-ACCESS in
+    exit
+
+ip ssh time-out 90
+ip ssh authentication-retries 2
+
+! ---------------------------------------------------------
+! VERIFY CONFIGURATION:
+! show ip ssh
+! show access-lists
+! show ipv6 access-lists
+! ---------------------------------------------------------
+
+! ---------------------------------------------------------
+! TEST 1: SSH from PC-A (should succeed)
+! ssh admin@192.168.1.1
+! TEST 2: SSH from PC-C (should fail)
+! ssh admin@192.168.1.1
+! TEST 3: Ping PC-A to PC-B
+! ping 192.168.3.3
+! TEST 4: Test IPv6 connectivity from PC-A to PC-B
+! ping 2001:DB8:ACAD:C::3
+! TEST 5: Test IPv4 connectivity from PC-C to R1
+! ping 192.168.1.1
+! ---------------------------------------------------------
