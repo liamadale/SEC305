@@ -1,0 +1,216 @@
+! ========================================
+! R1 - COMPLETE CONFIGURATION
+! ========================================
+
+enable
+configure terminal
+
+! ----- Basic Configuration -----
+hostname R1
+enable secret cisco12345
+
+! ----- Interface Configuration -----
+interface GigabitEthernet0/1
+ ip address 10.0.1.1 255.255.255.0
+ no shutdown
+ exit
+
+interface GigabitEthernet0/2
+ ip address 10.0.2.1 255.255.255.0
+ no shutdown
+ exit
+
+interface Serial0/0/0
+ ip address 209.165.14.2 255.255.255.0
+ no shutdown
+ exit
+
+! ----- SSH Configuration -----
+! Set domain name
+ip domain-name netacad.com
+
+! Create local user with strong password
+username SSHadmin privilege 15 secret Str0ngP@ssw0rd!
+
+! Generate RSA keys for SSH
+crypto key generate rsa general-keys modulus 1024
+
+! Configure VTY lines for SSH
+line vty 0 4
+ transport input ssh
+ login local
+ exec-timeout 5 0
+ exit
+
+! Configure login block-for (security feature)
+login block-for 300 attempts 4 within 120
+
+! ----- Syslog Configuration -----
+logging 10.0.1.254
+
+! ----- NTP Configuration -----
+ntp server 64.103.224.2
+
+! ----- Logging Timestamp Service -----
+service timestamps log datetime msec
+
+! ----- Banner Configuration -----
+banner motd #
+*************************************************
+*         Authorized Access Only!               *
+*   Unauthorized access is strictly prohibited  *
+*************************************************
+#
+
+! ----- Save Configuration -----
+end
+write memory
+```
+
+---
+
+## SWITCH S1 CONFIGURATION
+```
+! ========================================
+! S1 - COMPLETE CONFIGURATION
+! ========================================
+
+enable
+configure terminal
+
+! ----- Basic Configuration -----
+hostname S1
+enable secret cisco12345
+
+! ----- VLAN 1 Interface Configuration -----
+interface vlan 1
+ ip address 10.0.1.2 255.255.255.0
+ no shutdown
+ exit
+
+! ----- Default Gateway -----
+ip default-gateway 10.0.1.1
+
+! ----- SSH Configuration -----
+! Set domain name
+ip domain-name netacad.com
+
+! Create local user with strong password
+username SSHuser privilege 15 secret SSHuserpass
+
+! Generate RSA keys for SSH
+crypto key generate rsa general-keys modulus 1024
+
+! Configure VTY lines for SSH
+line vty 0 15
+ transport input ssh
+ login local
+ exec-timeout 5 0
+ exit
+
+! Configure login block-for (security feature)
+login block-for 300 attempts 4 within 120
+
+! ----- Console Line Configuration -----
+line console 0
+ password cisco12345
+ login
+ logging synchronous
+ exec-timeout 5 0
+ exit
+
+! ----- Syslog Configuration -----
+logging 10.0.1.254
+
+! ----- Logging Timestamp Service -----
+service timestamps log datetime msec
+
+! ----- Manual Clock Setting (Example) -----
+! Note: This command must be run in privileged EXEC mode
+! clock set 11:47:00 July 10 2013
+
+! ----- Banner Configuration -----
+banner motd #
+*************************************************
+*         Authorized Access Only!               *
+*   Unauthorized access is strictly prohibited  *
+*************************************************
+#
+
+! ----- Save Configuration -----
+end
+write memory
+```
+
+---
+
+## SWITCH S2 CONFIGURATION
+```
+! ========================================
+! S2 - COMPLETE CONFIGURATION
+! ========================================
+
+enable
+configure terminal
+
+! ----- Basic Configuration -----
+hostname S2
+enable secret cisco12345
+
+! ----- VLAN 1 Interface Configuration -----
+interface vlan 1
+ ip address 10.0.2.2 255.255.255.0
+ no shutdown
+ exit
+
+! ----- Default Gateway -----
+ip default-gateway 10.0.2.1
+
+! ----- SSH Configuration -----
+! Set domain name
+ip domain-name netacad.com
+
+! Create local user with strong password
+username SSHuser privilege 15 secret SSHuserpass
+
+! Generate RSA keys for SSH
+crypto key generate rsa general-keys modulus 1024
+
+! Configure VTY lines for SSH
+line vty 0 15
+ transport input ssh
+ login local
+ exec-timeout 5 0
+ exit
+
+! Configure login block-for (security feature)
+login block-for 300 attempts 4 within 120
+
+! ----- Console Line Configuration -----
+line console 0
+ password cisco12345
+ login
+ logging synchronous
+ exec-timeout 5 0
+ exit
+
+! ----- Syslog Configuration -----
+logging 10.0.1.254
+
+! ----- Logging Timestamp Service -----
+service timestamps log datetime msec
+
+! ----- Manual Clock Setting (Example) -----
+! Note: This command must be run in privileged EXEC mode
+! clock set 11:47:00 July 10 2013
+
+! ----- Banner Configuration -----
+banner motd #
+*************************************************
+*         Authorized Access Only!               *
+*   Unauthorized access is strictly prohibited  *
+*************************************************
+#
+
+! ----- Save Configuration -----
+end

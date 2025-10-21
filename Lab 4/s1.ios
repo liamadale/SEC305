@@ -1,0 +1,18 @@
+hostname S1
+
+no ip domain-lookup
+
+interface vlan 1
+    ip address 192.168.1.2 255.255.255.0
+    no shutdown
+
+interface range fa0/1, fa0/5, fa0/24
+    switchport mode access
+    switchport access vlan 1
+    no shutdown
+
+! -------------------
+! HELP COMMANDS:
+! -------------------
+! show monitor
+! show monitor session 1
