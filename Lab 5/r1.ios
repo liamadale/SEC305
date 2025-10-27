@@ -1,0 +1,48 @@
+hostname R1
+
+no ip domain-lookup
+
+interface GigabitEthernet0/0.10
+ description Gateway for VLAN 10
+ ip address 192.168.1.1 255.255.255.0
+ encapsulation dot1Q 10
+ no shutdown
+
+interface GigabitEthernet0/0.999
+ encapsulation dot1Q 999
+ no shutdown
+
+interface GigabitEthernet0/1
+ description PC-B Access Port
+ switchport mode access
+ switchport access vlan 10
+ no shutdown
+
+ip dhcp excluded-address 192.168.1.1 192.168.1.10
+ip dhcp pool STUDENT_POOL
+ network 192.168.1.0 255.255.255.0
+ default-router 192.168.1.1
+ dns-server 8.8.8.8
+ lease 0 8
+
+! STOP FUNCTIONAL CONFIG ENDS HERE
+! ----------------------------------------
+! ADDITIONAL CONFIGURATION BELOW
+
+! ----------------------------------------
+! ENABLE PASSWORD LOCKING
+! ----------------------------------------
+
+enable secret class12345
+
+line console 0
+ password cisco12345
+ login
+ logging synchronous
+ exit
+
+line vty 0 15
+ password cisco12345
+ login
+ logging synchronous
+ exit

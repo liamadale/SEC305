@@ -1,0 +1,163 @@
+hostname S1
+
+no ip domain-lookup
+
+banner motd #Unauthorized Access is Prohibited!#
+
+vlan 10
+ name STUDENT
+vlan 999
+ name PARKING_LOT
+ exit
+
+interface FastEthernet0/1
+ description S2 Trunk Port
+ switchport mode trunk
+ switchport trunk allowed vlan 10
+ no shutdown
+
+interface FastEthernet0/3
+ description R1 Trunk Port
+ switchport mode trunk
+ switchport trunk allowed vlan 10
+ no shutdown
+
+interface FastEthernet0/6
+ description PC-A Access Port
+ switchport mode access
+ switchport access vlan 10
+ no shutdown
+
+interface FastEthernet0/10
+ description Attacker-PC Access Port
+ switchport mode access
+ switchport access vlan 10
+
+! STOP FUNCTIONAL CONFIG ENDS HERE
+! ----------------------------------------
+! ADDITIONAL CONFIGURATION BELOW
+
+! ----------------------------------------
+! PORT SECURITY CONFIGURATION
+! ----------------------------------------
+
+! ENABLE PORT SECURITY
+interface FastEthernet0/6
+ switchport port-security
+ switchport port-security maximum 1
+ switchport port-security violation shutdown
+ switchport port-security mac-address sticky
+ exit
+
+interface FastEthernet0/3
+ switchport port-security
+ switchport port-security maximum 1
+ ! REPLACE xxxx.xxxx.xxxx WITH R1'S ACTUAL MAC ADDRESS
+ switchport port-security mac-address xxxx.xxxx.xxxx
+
+interface FastEthernet0/10
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation shutdown
+ switchport port-security mac-address sticky
+ exit
+
+! ----------------------------------------
+! VLAN SECURITY CONFIGURATION
+! ----------------------------------------
+
+! DISABLE DTP AND SECURE TRUNK PORT
+interface FastEthernet0/1
+ switchport nonegotiate
+
+! CHANGE NATIVE VLAN TO PARKING_LOT
+interface FastEthernet0/1
+ switchport trunk native vlan 999
+ exit
+
+! DISABLE UNUSED PORTS
+interface range f0/2, f0/4, f0/7-24, g0/1-2
+ description Unused Ports - Security Disabled
+ switchport mode access
+ switchport access vlan 999
+ shutdown
+ exit
+
+! CONFIGURE PROTECTED PORTS (PVLAN EDGE)
+interface range f0/6, f0/10
+ switchport protected
+ exit
+
+! ENABLE DHCP SNOOPING
+ip dhcp snooping vlan 10
+
+! ENABLE TRUSTED DHCP PORTS
+interface range FastEthernet0/3,FastEthernet0/1
+ ip dhcp snooping trust
+
+! RATE LIMIT UNTRUSTED DHCP PORTS
+interface range FastEthernet0/3, FastEthernet0/6, FastEthernet0/10
+ ip dhcp snooping limit rate 10
+ exit
+
+! ----------------------------------------
+! DYNAMIC ARP INSPECTION CONFIGURATION
+! ----------------------------------------
+
+! DAI ENABLE
+ip arp inspection vlan 10
+
+! TRUSTED PORTS FOR DAI
+interface range FastEthernet0/3,FastEthernet0/1
+ ip arp inspection trust
+ exit
+
+! ----------------------------------------
+! IP SOURCE GUARD CONFIGURATION
+! ----------------------------------------
+
+! ENABLE IP SOURCE GUARD ON UNTRUSTED PORTS
+interface range FastEthernet0/6, FastEthernet0/10
+ ip verify source
+ exit
+
+! ENABLE IP SOURCE GUARD WITH MAC ADDRESS FILTERING
+interface FastEthernet0/10
+ ip verify source port-security
+ exit
+
+! ----------------------------------------
+! SPANNING TREE CONFIGURATION
+! ----------------------------------------
+
+spanning-tree vlan 10 root primary
+spanning-tree vlan 10 priority 4096
+
+! PORT FAST ON ACCESS PORTS
+spanning-tree portfast default
+
+! ENABLE BPDU GUARD ON ACCESS PORTS
+interface range FastEthernet0/6, FastEthernet0/10
+ spanning-tree bpduguard enable
+ exit
+
+! ENABLE LOOPGUARD ON ALL PORTS
+spanning-tree loopguard default
+
+! ----------------------------------------
+! ENABLE PASSWORD LOCKING
+! ----------------------------------------
+
+enable secret class12345
+
+line console 0
+ password cisco12345
+ login
+ logging synchronous
+ exit
+
+line vty 0 15
+ password cisco12345
+ login
+ logging synchronous
+ exit
